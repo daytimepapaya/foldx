@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,10 +16,17 @@ void foldx(const char *filename, int record_length, bool is_variable) {
     Record record = {0};
 
     FILE *input = fopen(filename, "rb");
+    if (input == NULL) {
+        perror("File opening failed");
+        return;
+    }
     char output_filename[strlen(filename) + 2];
     sprintf(output_filename, "@%s", filename);
     FILE *output = fopen(output_filename, "wb");
-
+    if (output == NULL) {
+        perror("File opening failed");
+        return;
+    }
 
     while (!feof(input) && !ferror(input)) {
         if (is_variable) {
@@ -42,15 +50,14 @@ void foldx(const char *filename, int record_length, bool is_variable) {
         }
     }
 
-
     fclose(input);
     fclose(output);
 }
 
 int main(int argc, char *argv[]) {
     int opt;
-    bool is_variable;
-    int record_length;
+    bool is_variable = false;
+    int record_length = 0;
 
     while ((opt = getopt(argc, argv, "l:")) != -1) {
         switch (opt) {
@@ -68,8 +75,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    printf("is_variable:%d, record_length:%d, optind:%d, filename:%s\n",
-           is_variable, record_length, optind, argv[optind]);
+    assert(is_variable? true: (record_length>0 && record_length<MAX_LENGTH));
 
     foldx(argv[optind], record_length, is_variable);
 
